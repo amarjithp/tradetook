@@ -7,7 +7,7 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-   debugPrint('✅ Firebase initialized!');
+  debugPrint('✅ Firebase initialized!');
   runApp(const MyApp());
 }
 
@@ -25,35 +25,45 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class VideoItem {
+  final String title;
+  final String url;
+
+  VideoItem({required this.title, required this.url});
+}
+
 class YouTubeGridPage extends StatelessWidget {
   const YouTubeGridPage({super.key});
 
-  Future<List<String>> fetchYouTubeUrls() async {
+  Future<List<VideoItem>> fetchYouTubeVideos() async {
   try {
-    final ref = FirebaseDatabase.instance.ref();
+    final ref = FirebaseDatabase.instance.ref().child('youtubeVideos');
     final snapshot = await ref.get();
 
-    debugPrint('Full snapshot: ${snapshot.value}');
+    debugPrint('📦 Snapshot: ${snapshot.value}');
 
-    final data = snapshot.child('youtubeVideos').value;
+    final data = snapshot.value;
 
     if (data is List) {
-      // List of links
-      return data.whereType<String>().toList();
-    } else if (data is Map) {
-      // Just in case it's a map structure
-      return Map<String, dynamic>.from(data).values.map((e) => e.toString()).toList();
+      return data
+          .whereType<Map>() // filters out any nulls or non-map entries
+          .map((e) {
+            final item = Map<String, dynamic>.from(e);
+            return VideoItem(
+              title: item['title'] ?? 'No Title',
+              url: item['url'] ?? '',
+            );
+          })
+          .toList();
     } else {
-      debugPrint('youtubeVideos is not a List or Map');
+      debugPrint('❌ youtubeVideos is not a List');
     }
   } catch (e) {
-    debugPrint('Error fetching data: $e');
+    debugPrint('⚠️ Error fetching data: $e');
   }
 
   return [];
 }
-
-
 
 
   String extractVideoId(String url) {
@@ -71,8 +81,8 @@ class YouTubeGridPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('YouTube Video Gallery')),
-      body: FutureBuilder<List<String>>(
-        future: fetchYouTubeUrls(),
+      body: FutureBuilder<List<VideoItem>>(
+        future: fetchYouTubeVideos(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -84,7 +94,7 @@ class YouTubeGridPage extends StatelessWidget {
             return const Center(child: Text('No videos found.'));
           }
 
-          final youtubeUrls = snapshot.data!;
+          final videos = snapshot.data!;
           return LayoutBuilder(
             builder: (context, constraints) {
               final columnCount = calculateColumnCount(constraints.maxWidth);
@@ -95,39 +105,59 @@ class YouTubeGridPage extends StatelessWidget {
                   crossAxisCount: columnCount,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 16 / 9,
+                  childAspectRatio: 16 / 10,
                 ),
-                itemCount: youtubeUrls.length,
+                itemCount: videos.length,
                 itemBuilder: (context, index) {
-                  final videoId = extractVideoId(youtubeUrls[index]);
-                  final thumbnail = 'https://img.youtube.com/vi/$videoId/0.jpg';
+                  final video = videos[index];
+                  final videoId = extractVideoId(video.url);
+                  final thumbnail =
+                      'https://img.youtube.com/vi/$videoId/0.jpg';
 
                   return GestureDetector(
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => YouTubePlayerScreen(videoId: videoId),
+                          builder: (_) =>
+                              YouTubePlayerScreen(videoId: videoId),
                         ),
                       );
                     },
-                    child: Stack(
+                    child: Column(
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            thumbnail,
-                            width: double.infinity,
-                            height: double.infinity,
-                            fit: BoxFit.cover,
+                        Expanded(
+                          child: Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  thumbnail,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              const Center(
+                                child: Icon(
+                                  Icons.play_circle_fill,
+                                  size: 64,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const Center(
-                          child: Icon(
-                            Icons.play_circle_fill,
-                            size: 64,
-                            color: Colors.white70,
+                        const SizedBox(height: 8),
+                        Text(
+                          video.title,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -179,7 +209,10 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Playing Video')),
       body: Center(
-        child: YoutubePlayer(controller: _controller, aspectRatio: 16 / 9),
+        child: YoutubePlayer(
+          controller: _controller,
+          aspectRatio: 16 / 9,
+        ),
       ),
     );
   }
