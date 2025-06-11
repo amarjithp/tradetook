@@ -9,6 +9,7 @@
 .buildlog/
 .history
 .svn/
+lib/firebase_options.dart
 .swiftpm/
 migrate_working_dir/
 
