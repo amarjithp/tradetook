@@ -5,6 +5,7 @@ class VideoItem {
   final int totalHits;
   final Map<String, int> dayWiseHits;
   final List<String> hitUsersMob;
+  String? firebaseKey;
 
   VideoItem({
     required this.title,

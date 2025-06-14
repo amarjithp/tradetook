@@ -96,9 +96,9 @@ class YouTubeGridPage extends StatelessWidget {
 
     if (data is Map) {
       return (data).entries.map((entry) {
-        final item = Map<String, dynamic>.from(entry.value);
-        return VideoItem.fromMap(item);
-      }).toList();
+      final item = Map<String, dynamic>.from(entry.value);
+      return VideoItem.fromMap(item)..firebaseKey = entry.key;
+    }).toList();
     } else {
       return [];
     }
@@ -161,7 +161,10 @@ class YouTubeGridPage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => YouTubePlayerScreen(videoId: videoId),
+                          builder: (_) => YouTubePlayerScreen(
+                            videoId: videoId,
+                            firebaseKey: video.firebaseKey!,
+                          ),
                         ),
                       );
                     },
@@ -215,7 +218,9 @@ class YouTubeGridPage extends StatelessWidget {
 
 class YouTubePlayerScreen extends StatefulWidget {
   final String videoId;
-  const YouTubePlayerScreen({super.key, required this.videoId});
+  final String firebaseKey;
+
+  const YouTubePlayerScreen({super.key, required this.videoId, required this.firebaseKey,});
 
   @override
   State<YouTubePlayerScreen> createState() => _YouTubePlayerScreenState();
@@ -223,10 +228,23 @@ class YouTubePlayerScreen extends StatefulWidget {
 
 class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
   late YoutubePlayerController _controller;
+  Future<void> incrementHitCount() async {
+    final ref = FirebaseDatabase.instance.ref('youTubeVideos/${widget.firebaseKey}/hitCounts/totalHits');
+
+    try {
+      final snapshot = await ref.get();
+      final currentHits = snapshot.value as int? ?? 0;
+      await ref.set(currentHits + 1);
+      debugPrint('🔥 totalHits updated to ${currentHits + 1}');
+    } catch (e) {
+      debugPrint('❌ Failed to update totalHits: $e');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    incrementHitCount();
     _controller = YoutubePlayerController.fromVideoId(
       videoId: widget.videoId,
       autoPlay: true,
