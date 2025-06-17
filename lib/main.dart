@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'firebase_options.dart';
 import 'package:tradetook/models/video_item.dart';
+import 'screens/user_tree_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,58 @@ class MyApp extends StatelessWidget {
 
 class YouTubeGridPage extends StatelessWidget {
   const YouTubeGridPage({super.key});
+  
+  Future<void> uploadNewTree() async {
+  final ref = FirebaseDatabase.instance.ref().child('usersTree');
+
+  final newTree = {
+    "9520663456": {
+      "name": "company",
+      "mobile": "9520663456",
+      "earning": 112,
+      "parent": "none",
+      "children": {
+        "95201": {
+          "name": "subash",
+          "mobile": "95201",
+          "earning": 500,
+          "parent": "9520663456"
+        },
+        "95202": {
+          "name": "ravi",
+          "mobile": "95202",
+          "earning": 200,
+          "parent": "9520663456",
+          "children": {
+            "95203": {
+              "name": "raju",
+              "mobile": "95203",
+              "earning": 1000,
+              "parent": "95202",
+              "children": {
+                "95205": {
+                  "name": "sankar",
+                  "mobile": "95205",
+                  "earning": 0,
+                  "parent": "95203"
+                }
+              }
+            },
+            "95204": {
+              "name": "atul",
+              "mobile": "95204",
+              "earning": 6350,
+              "parent": "95202"
+            }
+          }
+        }
+      }
+    }
+  };
+
+  await ref.set(newTree);
+}
+
 
   Future<void> addRichYouTubeVideo({
     required String title,
@@ -37,6 +90,7 @@ class YouTubeGridPage extends StatelessWidget {
   }) async {
     try {
       final ref = FirebaseDatabase.instance.ref().child('youTubeVideos');
+
 
       // Hardcoded dummy values
       final dayWiseHits = {
@@ -67,25 +121,12 @@ class YouTubeGridPage extends StatelessWidget {
     }
   }
 
-  /*Future<void> addYouTubeVideo(String title, String url) async {
-    try {
-      final ref = FirebaseDatabase.instance.ref().child('youtubeVideos');
-      await ref.push().set({
-        'title': title,
-        'url': url,
-      });
-      debugPrint('✅ Video added successfully');
-    } catch (e) {
-      debugPrint('❌ Failed to add video: $e');
-    }
-  }*/
-
   Future<List<VideoItem>> fetchYouTubeVideos() async {
-    addRichYouTubeVideo(
+  /* addRichYouTubeVideo(
   title: 'chemtrails',
   link: 'https://youtu.be/vBHild0PiTE?si=m2InfkoDRFwEsVu0',
-);
-
+);*/
+//uploadNewTree()
   try {
     final ref = FirebaseDatabase.instance.ref().child('youTubeVideos');
     final snapshot = await ref.get();
@@ -123,7 +164,32 @@ class YouTubeGridPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('YouTube Video Gallery')),
+      appBar: AppBar(
+  title: const Text('YouTube Video Gallery'),
+  actions: [
+    Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: ElevatedButton.icon(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const UserTreeGraphScreen()),
+          );
+        },
+        icon: const Icon(Icons.account_tree_outlined, size: 18),
+        label: const Text("User Tree"),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.red,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          textStyle: const TextStyle(fontSize: 12),
+          elevation: 0,
+        ),
+      ),
+    ),
+  ],
+),
+
       body: FutureBuilder<List<VideoItem>>(
         future: fetchYouTubeVideos(),
         builder: (context, snapshot) {
