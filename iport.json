@@ -1,0 +1,40 @@
+{
+  "usersTable": {
+    "9520663456": {
+      "Mob": "9520663456",
+      "name": "company",
+      "earning": 112,
+      "parent": "none"
+    },
+    "95201": {
+      "Mob": "95201",
+      "name": "subash",
+      "earning": 500,
+      "parent": "9520663456"
+    },
+    "95202": {
+      "Mob": "95202",
+      "name": "ravi",
+      "earning": 200,
+      "parent": "9520663456"
+    },
+    "95203": {
+      "Mob": "95203",
+      "name": "raju",
+      "earning": 1000,
+      "parent": "95202"
+    },
+    "95204": {
+      "Mob": "95204",
+      "name": "atul",
+      "earning": 6350,
+      "parent": "95202"
+    },
+    "95205": {
+      "Mob": "95205",
+      "name": "sankar",
+      "earning": 0,
+      "parent": "95203"
+    }
+  }
+}

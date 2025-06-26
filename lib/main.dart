@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
 
 class YouTubeGridPage extends StatelessWidget {
   const YouTubeGridPage({super.key});
-  
+  /*
   Future<void> uploadNewTree() async {
   final ref = FirebaseDatabase.instance.ref().child('usersTree');
 
@@ -81,7 +81,7 @@ class YouTubeGridPage extends StatelessWidget {
   };
 
   await ref.set(newTree);
-}
+}*/
 
 
   Future<void> addRichYouTubeVideo({
@@ -126,7 +126,6 @@ class YouTubeGridPage extends StatelessWidget {
   title: 'chemtrails',
   link: 'https://youtu.be/vBHild0PiTE?si=m2InfkoDRFwEsVu0',
 );*/
-//uploadNewTree()
   try {
     final ref = FirebaseDatabase.instance.ref().child('youTubeVideos');
     final snapshot = await ref.get();
@@ -173,7 +172,7 @@ class YouTubeGridPage extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const UserTreeGraphScreen()),
+            MaterialPageRoute(builder: (_) => const GraphPage()),
           );
         },
         icon: const Icon(Icons.account_tree_outlined, size: 18),
